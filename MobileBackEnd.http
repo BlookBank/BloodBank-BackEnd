@@ -1,6 +1,56 @@
 @MobileBackEnd_HostAddress = http://localhost:5295
+# ID token de Firebase del usuario (el app Flutter lo envía automáticamente)
+@token = PEGA_AQUI_EL_ID_TOKEN
 
-GET {{MobileBackEnd_HostAddress}}/weatherforecast/
-Accept: application/json
+### Health check (sin token)
+GET {{MobileBackEnd_HostAddress}}/api/health
 
-###
+### Solicitudes de sangre (filtra con ?bloodGroup=A+&status=Active)
+GET {{MobileBackEnd_HostAddress}}/api/bloodrequests
+Authorization: Bearer {{token}}
+
+### Mis solicitudes
+GET {{MobileBackEnd_HostAddress}}/api/bloodrequests/mine
+Authorization: Bearer {{token}}
+
+### Crear solicitud (el solicitante sale del token)
+POST {{MobileBackEnd_HostAddress}}/api/bloodrequests
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "patientName": "Jorge Perez",
+  "bloodGroup": "A+",
+  "numberOfBags": 2,
+  "contactNumber": "+18092249304",
+  "caseDescription": "Accident",
+  "needBeforeDate": "2026-12-01T00:00:00",
+  "location": "Santo Domingo, RD"
+}
+
+### Cambiar estado (Active, Fulfilled, Cancelled)
+PATCH {{MobileBackEnd_HostAddress}}/api/bloodrequests/1/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "status": "Fulfilled" }
+
+### Donantes
+GET {{MobileBackEnd_HostAddress}}/api/donors
+Authorization: Bearer {{token}}
+
+### Registrarme como donante
+POST {{MobileBackEnd_HostAddress}}/api/donors
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Jorge Perez",
+  "contactNumber": "+18092249304",
+  "bloodGroup": "B+",
+  "location": "Santo Domingo, RD"
+}
+
+### Mi perfil
+GET {{MobileBackEnd_HostAddress}}/api/users/me
+Authorization: Bearer {{token}}

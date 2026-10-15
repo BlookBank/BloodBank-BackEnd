@@ -7,6 +7,7 @@ namespace MobileBackEnd.Repositories;
 public interface IBloodRequestRepository
 {
     Task<IEnumerable<BloodRequest>> GetAllAsync(string? bloodGroup = null, string? status = null);
+    Task<IEnumerable<BloodRequest>> GetByRequesterAsync(string requesterId);
     Task<BloodRequest?> GetByIdAsync(int id);
     Task<BloodRequest> AddAsync(BloodRequest request);
     Task<bool> UpdateAsync(BloodRequest request);
@@ -24,19 +25,30 @@ public class BloodRequestRepository : IBloodRequestRepository
 
     public async Task<IEnumerable<BloodRequest>> GetAllAsync(string? bloodGroup = null, string? status = null)
     {
-        var query = _context.BloodRequests.AsQueryable();
+        var query = _context.BloodRequests.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(bloodGroup) && !bloodGroup.Equals("All", StringComparison.OrdinalIgnoreCase))
         {
-            query = query.Where(r => r.BloodGroup.ToLower() == bloodGroup.Trim().ToLower());
+            var group = bloodGroup.Trim().ToUpper();
+            query = query.Where(r => r.BloodGroup == group);
         }
 
         if (!string.IsNullOrWhiteSpace(status))
         {
-            query = query.Where(r => r.Status.ToLower() == status.Trim().ToLower());
+            var normalized = status.Trim().ToLower();
+            query = query.Where(r => r.Status.ToLower() == normalized);
         }
 
         return await query.OrderByDescending(r => r.CreatedAt).ToListAsync();
+    }
+
+    public async Task<IEnumerable<BloodRequest>> GetByRequesterAsync(string requesterId)
+    {
+        return await _context.BloodRequests
+            .AsNoTracking()
+            .Where(r => r.RequesterId == requesterId)
+            .OrderByDescending(r => r.CreatedAt)
+            .ToListAsync();
     }
 
     public async Task<BloodRequest?> GetByIdAsync(int id)

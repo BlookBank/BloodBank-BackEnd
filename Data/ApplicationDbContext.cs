@@ -29,12 +29,17 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.BloodGroup);
             entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.RequesterId);
         });
 
         modelBuilder.Entity<Donor>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.BloodGroup);
+            // Un usuario solo puede tener un perfil de donante
+            entity.HasIndex(e => e.UserId)
+                  .IsUnique()
+                  .HasFilter("[UserId] IS NOT NULL");
         });
     }
 }

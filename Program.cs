@@ -1,27 +1,49 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MobileBackEnd.Data;
 using MobileBackEnd.Repositories;
 using MobileBackEnd.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add Database Context
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-                       ?? "Data Source=blood_donation.db";
+// SQL Server (tablas: Users, Donors, BloodRequests)
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Missing connection string 'DefaultConnection'.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(connectionString));
+    options.UseSqlServer(connectionString));
 
-// Add Repositories
+// Repositories
 builder.Services.AddScoped<IBloodRequestRepository, BloodRequestRepository>();
 builder.Services.AddScoped<IDonorRepository, DonorRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-// Add Services
+// Services
 builder.Services.AddScoped<IBloodRequestService, BloodRequestService>();
 builder.Services.AddScoped<IDonorService, DonorService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
-// Add CORS policy for Flutter frontend
+// Authentication: el app Flutter envía el ID token de Firebase como "Bearer"
+// y aquí se valida contra las llaves públicas de Google (sin Admin SDK).
+var firebaseProjectId = builder.Configuration["Firebase:ProjectId"]
+    ?? throw new InvalidOperationException("Missing configuration 'Firebase:ProjectId'.");
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = $"https://securetoken.google.com/{firebaseProjectId}";
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = $"https://securetoken.google.com/{firebaseProjectId}",
+            ValidateAudience = true,
+            ValidAudience = firebaseProjectId,
+            ValidateLifetime = true
+        };
+    });
+builder.Services.AddAuthorization();
+
+// CORS para el frontend Flutter (desarrollo)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -37,14 +59,13 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Auto-migrate and seed database
+// Aplica migraciones y, en desarrollo, carga datos de ejemplo
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await DbInitializer.SeedAsync(context);
+    await DbInitializer.InitializeAsync(context, seedSampleData: app.Environment.IsDevelopment());
 }
 
-// Configure HTTP pipeline
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -52,6 +73,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowAll");
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
+app.MapGet("/api/health", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
 
 app.Run();

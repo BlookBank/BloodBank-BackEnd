@@ -16,8 +16,8 @@ public class UserProfileDto
 
 public class SyncUserDto
 {
-    [Required]
-    public string Id { get; set; } = string.Empty;
+    /// <summary>Se ignora: el id real sale del token de Firebase.</summary>
+    public string? Id { get; set; }
 
     [Required]
     [EmailAddress]

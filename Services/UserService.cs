@@ -7,7 +7,7 @@ namespace MobileBackEnd.Services;
 public interface IUserService
 {
     Task<UserProfileDto?> GetUserByIdAsync(string id);
-    Task<UserProfileDto> SyncUserAsync(SyncUserDto dto);
+    Task<OperationResult<UserProfileDto>> SyncUserAsync(string uid, SyncUserDto dto);
     Task<UserProfileDto?> UpdateUserAsync(string id, UpdateUserProfileDto dto);
 }
 
@@ -26,13 +26,18 @@ public class UserService : IUserService
         return user == null ? null : MapToDto(user);
     }
 
-    public async Task<UserProfileDto> SyncUserAsync(SyncUserDto dto)
+    public async Task<OperationResult<UserProfileDto>> SyncUserAsync(string uid, SyncUserDto dto)
     {
+        // El email es único: si ya lo usa otra cuenta se rechaza en vez de fallar con un 500
+        var sameEmail = await _repository.GetByEmailAsync(dto.Email);
+        if (sameEmail != null && sameEmail.Id != uid)
+            return OperationResult<UserProfileDto>.Conflict("That email is already linked to another account.");
+
         var entity = new UserProfile
         {
-            Id = dto.Id,
-            Email = dto.Email,
-            Name = dto.Name,
+            Id = uid,
+            Email = dto.Email.Trim(),
+            Name = dto.Name.Trim(),
             PhoneNumber = dto.PhoneNumber,
             Gender = dto.Gender,
             BloodGroup = dto.BloodGroup,
@@ -41,7 +46,7 @@ public class UserService : IUserService
         };
 
         var saved = await _repository.AddOrUpdateAsync(entity);
-        return MapToDto(saved);
+        return OperationResult<UserProfileDto>.Ok(MapToDto(saved));
     }
 
     public async Task<UserProfileDto?> UpdateUserAsync(string id, UpdateUserProfileDto dto)
@@ -49,7 +54,7 @@ public class UserService : IUserService
         var user = await _repository.GetByIdAsync(id);
         if (user == null) return null;
 
-        if (!string.IsNullOrWhiteSpace(dto.Name)) user.Name = dto.Name;
+        if (!string.IsNullOrWhiteSpace(dto.Name)) user.Name = dto.Name.Trim();
         if (!string.IsNullOrWhiteSpace(dto.PhoneNumber)) user.PhoneNumber = dto.PhoneNumber;
         if (!string.IsNullOrWhiteSpace(dto.Gender)) user.Gender = dto.Gender;
         if (!string.IsNullOrWhiteSpace(dto.BloodGroup)) user.BloodGroup = dto.BloodGroup;

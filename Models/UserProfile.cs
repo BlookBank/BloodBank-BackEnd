@@ -5,10 +5,12 @@ namespace MobileBackEnd.Models;
 public class UserProfile
 {
     [Key]
-    public string Id { get; set; } = string.Empty; // Firebase UID or unique ID
+    [MaxLength(128)]
+    public string Id { get; set; } = string.Empty; // Firebase UID
 
     [Required]
     [EmailAddress]
+    [MaxLength(256)]
     public string Email { get; set; } = string.Empty;
 
     [Required]
