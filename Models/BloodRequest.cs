@@ -7,7 +7,8 @@ public class BloodRequest
     [Key]
     public int Id { get; set; }
 
-    public string? RequesterId { get; set; }
+    [MaxLength(128)]
+    public string? RequesterId { get; set; } // Firebase UID
 
     [Required]
     [MaxLength(100)]

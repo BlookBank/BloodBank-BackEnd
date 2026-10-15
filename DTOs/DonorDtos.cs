@@ -42,3 +42,8 @@ public class CreateDonorDto
     [MaxLength(500)]
     public string? PictureUrl { get; set; }
 }
+
+public class UpdateAvailabilityDto
+{
+    public bool IsAvailable { get; set; }
+}

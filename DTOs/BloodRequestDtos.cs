@@ -70,3 +70,9 @@ public class CreateBloodRequestDto
     [MaxLength(500)]
     public string? Others { get; set; }
 }
+
+public class UpdateStatusDto
+{
+    [Required]
+    public string Status { get; set; } = string.Empty;
+}

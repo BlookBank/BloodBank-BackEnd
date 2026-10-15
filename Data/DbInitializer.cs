@@ -1,40 +1,15 @@
+using Microsoft.EntityFrameworkCore;
 using MobileBackEnd.Models;
 
 namespace MobileBackEnd.Data;
 
 public static class DbInitializer
 {
-    public static async Task SeedAsync(ApplicationDbContext context)
+    public static async Task InitializeAsync(ApplicationDbContext context, bool seedSampleData)
     {
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.MigrateAsync();
 
-        if (!context.Users.Any())
-        {
-            context.Users.AddRange(
-                new UserProfile
-                {
-                    Id = "demo-user-1",
-                    Email = "jorge.perez@example.com",
-                    Name = "Jorge Perez",
-                    PhoneNumber = "+18092249304",
-                    Gender = "Male",
-                    BloodGroup = "B+",
-                    Location = "Santo Domingo, DN",
-                    CreatedAt = DateTime.UtcNow.AddDays(-30)
-                },
-                new UserProfile
-                {
-                    Id = "demo-user-2",
-                    Email = "maria.santos@example.com",
-                    Name = "Maria Santos",
-                    PhoneNumber = "+18095551234",
-                    Gender = "Female",
-                    BloodGroup = "O+",
-                    Location = "Santiago, RD",
-                    CreatedAt = DateTime.UtcNow.AddDays(-15)
-                }
-            );
-        }
+        if (!seedSampleData) return;
 
         if (!context.BloodRequests.Any())
         {
@@ -122,7 +97,6 @@ public static class DbInitializer
             context.Donors.AddRange(
                 new Donor
                 {
-                    UserId = "demo-user-1",
                     Name = "Jorge Perez",
                     ContactNumber = "+18092249304",
                     BloodGroup = "B+",
@@ -133,7 +107,6 @@ public static class DbInitializer
                 },
                 new Donor
                 {
-                    UserId = "demo-user-2",
                     Name = "Maria Santos",
                     ContactNumber = "+18095551234",
                     BloodGroup = "O+",

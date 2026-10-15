@@ -11,6 +11,7 @@ public interface IDonorRepository
     Task<Donor?> GetByUserIdAsync(string userId);
     Task<Donor> AddAsync(Donor donor);
     Task<bool> UpdateAsync(Donor donor);
+    Task<bool> DeleteAsync(int id);
 }
 
 public class DonorRepository : IDonorRepository
@@ -24,11 +25,12 @@ public class DonorRepository : IDonorRepository
 
     public async Task<IEnumerable<Donor>> GetAllAsync(string? bloodGroup = null, bool? isAvailable = null)
     {
-        var query = _context.Donors.AsQueryable();
+        var query = _context.Donors.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(bloodGroup) && !bloodGroup.Equals("All", StringComparison.OrdinalIgnoreCase))
         {
-            query = query.Where(d => d.BloodGroup.ToLower() == bloodGroup.Trim().ToLower());
+            var group = bloodGroup.Trim().ToUpper();
+            query = query.Where(d => d.BloodGroup == group);
         }
 
         if (isAvailable.HasValue)
@@ -59,6 +61,15 @@ public class DonorRepository : IDonorRepository
     public async Task<bool> UpdateAsync(Donor donor)
     {
         _context.Entry(donor).State = EntityState.Modified;
+        return await _context.SaveChangesAsync() > 0;
+    }
+
+    public async Task<bool> DeleteAsync(int id)
+    {
+        var donor = await _context.Donors.FindAsync(id);
+        if (donor == null) return false;
+
+        _context.Donors.Remove(donor);
         return await _context.SaveChangesAsync() > 0;
     }
 }

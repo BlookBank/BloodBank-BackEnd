@@ -7,7 +7,8 @@ public class Donor
     [Key]
     public int Id { get; set; }
 
-    public string? UserId { get; set; }
+    [MaxLength(128)]
+    public string? UserId { get; set; } // Firebase UID
 
     [Required]
     [MaxLength(100)]
