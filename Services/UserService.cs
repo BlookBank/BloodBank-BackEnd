@@ -60,7 +60,7 @@ public class UserService : IUserService
         var user = await _repository.GetByIdAsync(id);
         if (user == null) return null;
 
-        // Solo se cambian los campos que llegan con valor (actualizacion parcial).
+        // Solo se cambian los campos que llegan con valor (actualización parcial).
         if (!string.IsNullOrWhiteSpace(dto.Name)) user.Name = dto.Name.Trim();
         if (!string.IsNullOrWhiteSpace(dto.PhoneNumber)) user.PhoneNumber = dto.PhoneNumber;
         if (!string.IsNullOrWhiteSpace(dto.Gender)) user.Gender = dto.Gender;

@@ -61,7 +61,7 @@ public class UsersController : ControllerBase
         };
     }
 
-    /// <summary>PUT api/Users/{uid} : actualiza el perfil propio (actualizacion parcial).</summary>
+    /// <summary>PUT api/Users/{uid} : actualiza el perfil propio (actualización parcial).</summary>
     [HttpPut("{id}")]
     public async Task<ActionResult<UserProfileDto>> Update(string id, [FromBody] UpdateUserProfileDto dto)
     {
