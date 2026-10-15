@@ -6,6 +6,10 @@ using MobileBackEnd.Services;
 
 namespace MobileBackEnd.Controllers;
 
+/// <summary>
+/// API de solicitudes de sangre (api/BloodRequests). Todas las rutas exigen un token de Firebase válido;
+/// el usuario sale del token, así nadie puede actuar en nombre de otra persona.
+/// </summary>
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
@@ -18,6 +22,7 @@ public class BloodRequestsController : ControllerBase
         _service = service;
     }
 
+    /// <summary>GET api/BloodRequests?bloodGroup=A+&amp;status=Active : lista las solicitudes, las más recientes primero.</summary>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<BloodRequestDto>>> GetAll([FromQuery] string? bloodGroup = null, [FromQuery] string? status = null)
     {
@@ -25,6 +30,7 @@ public class BloodRequestsController : ControllerBase
         return Ok(requests);
     }
 
+    /// <summary>GET api/BloodRequests/mine : solicitudes publicadas por el usuario autenticado.</summary>
     [HttpGet("mine")]
     public async Task<ActionResult<IEnumerable<BloodRequestDto>>> GetMine()
     {
@@ -34,6 +40,7 @@ public class BloodRequestsController : ControllerBase
         return Ok(await _service.GetMyRequestsAsync(uid));
     }
 
+    /// <summary>GET api/BloodRequests/5 : detalle de una solicitud (404 si no existe).</summary>
     [HttpGet("{id:int}")]
     public async Task<ActionResult<BloodRequestDto>> GetById(int id)
     {
@@ -42,6 +49,7 @@ public class BloodRequestsController : ControllerBase
         return Ok(request);
     }
 
+    /// <summary>POST api/BloodRequests : publica una solicitud; el solicitante es el usuario del token (201).</summary>
     [HttpPost]
     public async Task<ActionResult<BloodRequestDto>> Create([FromBody] CreateBloodRequestDto dto)
     {
@@ -52,6 +60,7 @@ public class BloodRequestsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
+    /// <summary>PUT api/BloodRequests/5 : edita una solicitud propia (403 si es de otro usuario).</summary>
     [HttpPut("{id:int}")]
     public async Task<ActionResult<BloodRequestDto>> Update(int id, [FromBody] CreateBloodRequestDto dto)
     {
@@ -61,6 +70,7 @@ public class BloodRequestsController : ControllerBase
         return ToActionResult(await _service.UpdateRequestAsync(uid, id, dto), id);
     }
 
+    /// <summary>PATCH api/BloodRequests/5/status : cambia el estado (Active, Fulfilled o Cancelled); 400 si es otro valor.</summary>
     [HttpPatch("{id:int}/status")]
     public async Task<ActionResult<BloodRequestDto>> UpdateStatus(int id, [FromBody] UpdateStatusDto dto)
     {
@@ -70,6 +80,7 @@ public class BloodRequestsController : ControllerBase
         return ToActionResult(await _service.UpdateStatusAsync(uid, id, dto.Status), id);
     }
 
+    /// <summary>DELETE api/BloodRequests/5 : elimina una solicitud propia (204).</summary>
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
@@ -85,6 +96,7 @@ public class BloodRequestsController : ControllerBase
         };
     }
 
+    /// <summary>Traduce el resultado del servicio a la respuesta HTTP: 200, 400, 403 o 404.</summary>
     private ActionResult<BloodRequestDto> ToActionResult(OperationResult<BloodRequestDto> result, int id) =>
         result.Status switch
         {

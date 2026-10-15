@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MobileBackEnd.DTOs;
 
+/// <summary>Solicitud de sangre tal como se devuelve al cliente.</summary>
 public class BloodRequestDto
 {
     public int Id { get; set; }
@@ -14,11 +15,13 @@ public class BloodRequestDto
     public string CaseDescription { get; set; } = string.Empty;
     public string? Gender { get; set; }
     public DateTime NeedBeforeDate { get; set; }
+    /// <summary>Fecha límite ya formateada para mostrar en pantalla.</summary>
     public string NeedBeforeDateFormatted => NeedBeforeDate.ToString("dd MMMM yyyy");
     public string Location { get; set; } = string.Empty;
     public string? Others { get; set; }
     public string Status { get; set; } = "Active";
     public DateTime CreatedAt { get; set; }
+    /// <summary>Texto relativo ("Just now", "5 minute ago", "2 hours ago", "3 days ago") calculado con la fecha de creación.</summary>
     public string TimeAgo
     {
         get
@@ -32,6 +35,10 @@ public class BloodRequestDto
     }
 }
 
+/// <summary>
+/// Datos para publicar o editar una solicitud. El solicitante (RequesterId) siempre sale del token;
+/// lo que mande el cliente en ese campo se ignora.
+/// </summary>
 public class CreateBloodRequestDto
 {
     public string? RequesterId { get; set; }
@@ -71,6 +78,7 @@ public class CreateBloodRequestDto
     public string? Others { get; set; }
 }
 
+/// <summary>Cuerpo del PATCH que cambia el estado de una solicitud (Active, Fulfilled o Cancelled).</summary>
 public class UpdateStatusDto
 {
     [Required]

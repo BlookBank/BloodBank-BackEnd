@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MobileBackEnd.DTOs;
 
+/// <summary>Perfil de usuario que el API devuelve al cliente.</summary>
 public class UserProfileDto
 {
     public string Id { get; set; } = string.Empty;
@@ -14,6 +15,10 @@ public class UserProfileDto
     public DateTime CreatedAt { get; set; }
 }
 
+/// <summary>
+/// Datos que envía la app después de registrarse en Firebase para crear (o actualizar) al usuario
+/// en SQL Server. El Id de la fila siempre se toma del token, nunca de este objeto.
+/// </summary>
 public class SyncUserDto
 {
     /// <summary>Se ignora: el id real sale del token de Firebase.</summary>
@@ -40,6 +45,9 @@ public class SyncUserDto
     public string? Location { get; set; }
 }
 
+/// <summary>
+/// Cambios parciales sobre el perfil: los campos que lleguen vacios o en null no se modifican.
+/// </summary>
 public class UpdateUserProfileDto
 {
     [MaxLength(100)]

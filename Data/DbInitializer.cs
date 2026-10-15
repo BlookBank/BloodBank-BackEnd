@@ -3,14 +3,23 @@ using MobileBackEnd.Models;
 
 namespace MobileBackEnd.Data;
 
+/// <summary>
+/// Prepara la base de datos al arrancar: aplica las migraciones pendientes y, solo en desarrollo,
+/// carga solicitudes y donantes de ejemplo para que las listas no aparezcan vacias.
+/// </summary>
 public static class DbInitializer
 {
+    /// <summary>Crea/actualiza el esquema y, si seedSampleData es true, inserta datos de ejemplo una sola vez.</summary>
+    /// <param name="context">Contexto de la base de datos.</param>
+    /// <param name="seedSampleData">true para insertar datos de ejemplo (solo en Development).</param>
     public static async Task InitializeAsync(ApplicationDbContext context, bool seedSampleData)
     {
+        // Aplica las migraciones (carpeta Migrations) que falten en SQL Server.
         await context.Database.MigrateAsync();
 
         if (!seedSampleData) return;
 
+        // Solo se insertan si la tabla esta vacia, así no se duplican en cada arranque.
         if (!context.BloodRequests.Any())
         {
             context.BloodRequests.AddRange(
@@ -92,6 +101,7 @@ public static class DbInitializer
             );
         }
 
+        // Donantes de ejemplo (sin UserId: no pertenecen a ninguna cuenta real).
         if (!context.Donors.Any())
         {
             context.Donors.AddRange(

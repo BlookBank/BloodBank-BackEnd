@@ -4,14 +4,20 @@ using MobileBackEnd.Models;
 
 namespace MobileBackEnd.Repositories;
 
+/// <summary>Acceso a datos de la tabla Users.</summary>
 public interface IUserRepository
 {
+    /// <summary>Busca un usuario por su UID de Firebase.</summary>
     Task<UserProfile?> GetByIdAsync(string id);
+    /// <summary>Busca un usuario por correo (sin distinguir mayúsculas).</summary>
     Task<UserProfile?> GetByEmailAsync(string email);
+    /// <summary>Inserta el usuario si no existe; si existe, actualiza sus datos.</summary>
     Task<UserProfile> AddOrUpdateAsync(UserProfile user);
+    /// <summary>Guarda los cambios de un usuario ya existente.</summary>
     Task<bool> UpdateAsync(UserProfile user);
 }
 
+/// <summary>Implementación con Entity Framework Core de <see cref="IUserRepository"/>.</summary>
 public class UserRepository : IUserRepository
 {
     private readonly ApplicationDbContext _context;
@@ -40,6 +46,8 @@ public class UserRepository : IUserRepository
         }
         else
         {
+            // Nombre y correo siempre se actualizan; los demas campos solo si llegan con valor,
+            // para no borrar datos al sincronizar desde el registro.
             existing.Name = user.Name;
             existing.Email = user.Email;
             if (!string.IsNullOrEmpty(user.PhoneNumber)) existing.PhoneNumber = user.PhoneNumber;

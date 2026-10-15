@@ -4,13 +4,18 @@ using MobileBackEnd.Repositories;
 
 namespace MobileBackEnd.Services;
 
+/// <summary>Reglas de negocio de los usuarios (perfil guardado en SQL Server).</summary>
 public interface IUserService
 {
+    /// <summary>Devuelve un usuario por su UID de Firebase o null si no existe.</summary>
     Task<UserProfileDto?> GetUserByIdAsync(string id);
+    /// <summary>Crea o actualiza en SQL Server al usuario autenticado en Firebase.</summary>
     Task<OperationResult<UserProfileDto>> SyncUserAsync(string uid, SyncUserDto dto);
+    /// <summary>Aplica cambios parciales al perfil; devuelve null si el usuario no existe.</summary>
     Task<UserProfileDto?> UpdateUserAsync(string id, UpdateUserProfileDto dto);
 }
 
+/// <summary>Implementación de <see cref="IUserService"/>.</summary>
 public class UserService : IUserService
 {
     private readonly IUserRepository _repository;
@@ -33,6 +38,7 @@ public class UserService : IUserService
         if (sameEmail != null && sameEmail.Id != uid)
             return OperationResult<UserProfileDto>.Conflict("That email is already linked to another account.");
 
+        // El Id es el UID del token, nunca el que mande el cliente.
         var entity = new UserProfile
         {
             Id = uid,
@@ -54,6 +60,7 @@ public class UserService : IUserService
         var user = await _repository.GetByIdAsync(id);
         if (user == null) return null;
 
+        // Solo se cambian los campos que llegan con valor (actualizacion parcial).
         if (!string.IsNullOrWhiteSpace(dto.Name)) user.Name = dto.Name.Trim();
         if (!string.IsNullOrWhiteSpace(dto.PhoneNumber)) user.PhoneNumber = dto.PhoneNumber;
         if (!string.IsNullOrWhiteSpace(dto.Gender)) user.Gender = dto.Gender;
@@ -64,6 +71,7 @@ public class UserService : IUserService
         return MapToDto(user);
     }
 
+    /// <summary>Convierte la entidad en el DTO que se envía al cliente.</summary>
     private static UserProfileDto MapToDto(UserProfile u) => new()
     {
         Id = u.Id,
