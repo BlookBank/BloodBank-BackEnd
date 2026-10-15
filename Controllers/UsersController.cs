@@ -6,6 +6,10 @@ using MobileBackEnd.Services;
 
 namespace MobileBackEnd.Controllers;
 
+/// <summary>
+/// API de usuarios (api/Users). Exige un token de Firebase válido y cada persona solo puede leer
+/// o modificar su propio perfil.
+/// </summary>
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
@@ -18,6 +22,7 @@ public class UsersController : ControllerBase
         _service = service;
     }
 
+    /// <summary>GET api/Users/me : perfil del usuario autenticado (404 si aún no se sincronizo).</summary>
     [HttpGet("me")]
     public async Task<ActionResult<UserProfileDto>> GetMe()
     {
@@ -29,6 +34,7 @@ public class UsersController : ControllerBase
         return Ok(user);
     }
 
+    /// <summary>GET api/Users/{uid} : perfil por UID; solo permitido para el propio usuario (403 en otro caso).</summary>
     [HttpGet("{id}")]
     public async Task<ActionResult<UserProfileDto>> GetById(string id)
     {
@@ -55,6 +61,7 @@ public class UsersController : ControllerBase
         };
     }
 
+    /// <summary>PUT api/Users/{uid} : actualiza el perfil propio (actualización parcial).</summary>
     [HttpPut("{id}")]
     public async Task<ActionResult<UserProfileDto>> Update(string id, [FromBody] UpdateUserProfileDto dto)
     {

@@ -6,6 +6,10 @@ using MobileBackEnd.Services;
 
 namespace MobileBackEnd.Controllers;
 
+/// <summary>
+/// API de donantes (api/Donors). Todas las rutas exigen un token de Firebase válido y cada usuario
+/// solo puede modificar su propio registro de donante.
+/// </summary>
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
@@ -18,6 +22,7 @@ public class DonorsController : ControllerBase
         _service = service;
     }
 
+    /// <summary>GET api/Donors?bloodGroup=O+&amp;isAvailable=true : lista donantes con filtros opcionales.</summary>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<DonorDto>>> GetAll([FromQuery] string? bloodGroup = null, [FromQuery] bool? isAvailable = null)
     {
@@ -25,6 +30,7 @@ public class DonorsController : ControllerBase
         return Ok(donors);
     }
 
+    /// <summary>GET api/Donors/me : el registro de donante del usuario autenticado (404 si no está registrado).</summary>
     [HttpGet("me")]
     public async Task<ActionResult<DonorDto>> GetMine()
     {
@@ -36,6 +42,7 @@ public class DonorsController : ControllerBase
         return Ok(donor);
     }
 
+    /// <summary>GET api/Donors/5 : detalle de un donante.</summary>
     [HttpGet("{id:int}")]
     public async Task<ActionResult<DonorDto>> GetById(int id)
     {
@@ -44,6 +51,7 @@ public class DonorsController : ControllerBase
         return Ok(donor);
     }
 
+    /// <summary>GET api/Donors/user/{uid} : el registro de donante de un usuario concreto.</summary>
     [HttpGet("user/{userId}")]
     public async Task<ActionResult<DonorDto>> GetByUserId(string userId)
     {
@@ -63,6 +71,7 @@ public class DonorsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = donor.Id }, donor);
     }
 
+    /// <summary>PUT api/Donors/5 : edita el registro propio (403 si es de otro usuario).</summary>
     [HttpPut("{id:int}")]
     public async Task<ActionResult<DonorDto>> Update(int id, [FromBody] CreateDonorDto dto)
     {
@@ -72,6 +81,7 @@ public class DonorsController : ControllerBase
         return ToActionResult(await _service.UpdateDonorAsync(uid, id, dto), id);
     }
 
+    /// <summary>PATCH api/Donors/5/availability : marca al donante como disponible o no disponible.</summary>
     [HttpPatch("{id:int}/availability")]
     public async Task<ActionResult<DonorDto>> SetAvailability(int id, [FromBody] UpdateAvailabilityDto dto)
     {
@@ -81,6 +91,7 @@ public class DonorsController : ControllerBase
         return ToActionResult(await _service.SetAvailabilityAsync(uid, id, dto.IsAvailable), id);
     }
 
+    /// <summary>DELETE api/Donors/5 : elimina el registro propio (204).</summary>
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
@@ -96,6 +107,7 @@ public class DonorsController : ControllerBase
         };
     }
 
+    /// <summary>Traduce el resultado del servicio a la respuesta HTTP: 200, 403 o 404.</summary>
     private ActionResult<DonorDto> ToActionResult(OperationResult<DonorDto> result, int id) =>
         result.Status switch
         {
